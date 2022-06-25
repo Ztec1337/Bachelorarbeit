@@ -7,6 +7,7 @@ Created on Mon Jun 13 17:50:29 2022
 
 
 import os 
+from os import path
 
 import numpy as np
 import pandas as pd 
@@ -28,8 +29,11 @@ keys =  [f'20simpleHam{i}' for i in np.arange(1,11,1)]
 dataset = [pd.read_hdf('dataset.h5',key) for key in keys]
 dataset = pd.concat(dataset,ignore_index = True)
 #%%
+filename = 'dataset.h5'
+keyname = '20simpleHam1'
+filepath = path.abspath(path.join(path.dirname(__file__), "..", "..", f"main/data/{filename}"))
 # Load a single chunk => much faster
-dataset = pd.read_hdf('dataset.h5','20simpleHam1')
+dataset = pd.read_hdf(filepath,keyname)
 #%%
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
@@ -47,13 +51,13 @@ def create_conv_model(regressionparameters):
     input_shape = (3276,1)
     model = keras.Sequential()  
     model.add(layers.InputLayer(input_shape=input_shape))
-    model.add(layers.Conv1D(8,strides = 2,kernel_size=(2),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(16,strides = 4,kernel_size=(4),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(32,strides = 4,kernel_size=(4),padding='valid',activation='relu'))
+    model.add(layers.Conv1D(8,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
+    model.add(layers.Conv1D(16,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
+    model.add(layers.Conv1D(32,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
     model.add(layers.Conv1D(64,strides = 4,kernel_size=(4),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(64,strides =5,kernel_size=(5),padding='valid',activation='relu'))
+    model.add(layers.Conv1D(128,strides =5,kernel_size=(5),padding='valid',activation='relu'))
     model.add(layers.Flatten())
-    model.add(layers.Dense(30, activation='relu'))
+    model.add(layers.Dense(100, activation='relu'))
     model.add(layers.Dense(regressionparameters, activation='linear'))
     return model
 #%%
@@ -70,13 +74,14 @@ model.compile(
     metrics=['accuracy']
     )
 #%%
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
+log_dir = logpath +'\\cnn'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 #%%
 history = model.fit(
     X_train,
     y_train,
-    epochs=5,
+    epochs=1000,
     batch_size=200,
     verbose=1,
     # Calculate validation results on 20% of the training data.
@@ -86,8 +91,7 @@ history = model.fit(
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 hist.tail()
-#%% 
-print(model.predict(X_train[0:10])-y_train[0:10])
+#%%
     
     
     

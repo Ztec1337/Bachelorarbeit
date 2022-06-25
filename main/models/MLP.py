@@ -76,7 +76,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 history = model.fit(
     X_train,
     y_train,
-    epochs=1000,
+    epochs=2000,
     batch_size=200,
     verbose=1,
     # Calculate validation results on 20% of the training data.
