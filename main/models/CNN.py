@@ -25,9 +25,11 @@ import datetime
 
 #%%
 # Load all generated data
-keys =  [f'20simpleHam{i}' for i in np.arange(1,11,1)]
-dataset = [pd.read_hdf('dataset.h5',key) for key in keys]
-dataset = pd.concat(dataset,ignore_index = True)
+# =============================================================================
+# keys =  [f'20simpleHam{i}' for i in np.arange(1,11,1)]
+# dataset = [pd.read_hdf('dataset.h5',key) for key in keys]
+# dataset = pd.concat(dataset,ignore_index = True)
+# =============================================================================
 #%%
 filename = 'dataset.h5'
 keyname = '20simpleHam1'
@@ -71,7 +73,7 @@ lossfunc = 'mean_squared_error'
 model.compile(
     optimizer=opt,
     loss=lossfunc,
-    metrics=['accuracy']
+    metrics=['mae','mape']
     )
 #%%
 logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
@@ -81,12 +83,14 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 history = model.fit(
     X_train,
     y_train,
-    epochs=1000,
+    epochs=2000,
     batch_size=200,
     verbose=1,
     # Calculate validation results on 20% of the training data.
     validation_split = 0.2,
     callbacks=[tensorboard_callback])
+#%%
+model.save('trained_models/cnn_mae_mape') 
 #%%
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch

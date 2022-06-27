@@ -66,7 +66,7 @@ lossfunc = 'mean_squared_error'
 model.compile(
     optimizer=opt,
     loss=lossfunc,
-    metrics=['accuracy']
+    metrics=['mae','mape']
     )
 #%%
 logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
@@ -82,6 +82,9 @@ history = model.fit(
     # Calculate validation results on 20% of the training data.
     validation_split = 0.2,
     callbacks=[tensorboard_callback])
+#%%
+model.save('trained_models/mlp_mae_mape') 
+
 #%%
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
