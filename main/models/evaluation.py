@@ -46,17 +46,37 @@ sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1]
 y = np.array([sc0.transform(y[0].reshape(-1,1)),sc1.transform(y[1].reshape(-1,1)),sc2.transform(y[2].reshape(-1,1))]).T.reshape(-1,3)
 # Split in test and train_set, make sure to use same randomstate_ as before during training 
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=42)
-#%% 
+
+#%%
+# ################### EVALUATION OF MODEL ######################
+# Load respective models 
 model = tf.keras.models.load_model('trained_models/cnn_mae_mape')
 model.summary()
+#%% 
+y_pred = model.predict(X_test)
+
 #%%
+absoluteerror = y_pred-y_test
 
+plt.hist(absoluteerror.T[0],bins=100,alpha = 0.9,label = 'aFieldStrength',histtype = 'step')
+plt.hist(absoluteerror.T[1],bins=100,alpha = 0.9,label = 'b',histtype = 'step')
+plt.hist(absoluteerror.T[2],bins=100,alpha = 0.9,label = 'c',histtype = 'step')
+plt.title('Error distributions before inverse scaling')
+plt.xlabel('Error')
+plt.ylabel('Counts')
+plt.legend()
+#%%
+def scaleinv(scaler,data):
+    return scaler.inverse_transform(data)
+absoluteerrorinvscale = np.array([scaleinv(sc0,y_pred.T[0])-scaleinv(sc0,y_test.T[0]),scaleinv(sc1,y_pred.T[1])-scaleinv(sc1,y_test.T[1]),scaleinv(sc2,y_pred.T[2])-scaleinv(sc2,y_test.T[2])]).T
 
-
-
-
-
-
+plt.hist(absoluteerrorinvscale.T[0],bins=100,alpha = 0.9,label = 'aFieldStrength',histtype = 'step')
+plt.hist(absoluteerrorinvscale.T[1],bins=100,alpha = 0.9,label = 'b',histtype = 'step')
+plt.hist(absoluteerrorinvscale.T[2],bins=100,alpha = 0.9,label = 'c',histtype = 'step')
+plt.title('Error distributions after inverse scaling')
+plt.xlabel('Absolute error')
+plt.ylabel('Counts')
+plt.legend()
 
 
 
