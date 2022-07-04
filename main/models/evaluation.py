@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+sns.set()
 
 import sklearn as sk 
 
@@ -50,7 +51,7 @@ X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_s
 #%%
 # ################### EVALUATION OF MODEL ######################
 # Load respective models 
-model = tf.keras.models.load_model('trained_models/cnn_mae_mape')
+model = tf.keras.models.load_model('trained_models/mlp_mae_mape')
 model.summary()
 #%% 
 y_pred = model.predict(X_test)

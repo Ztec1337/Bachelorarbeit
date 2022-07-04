@@ -19,17 +19,18 @@ import scipy.linalg as la
 from tqdm import tqdm
 
 class sim():
-    def __init__(self,dt = 1 ,steps = 4096 , frequency = 190, spectralwidth = 30): #,stepsCont = 2**15-4096 ,delay = int(4096/2)
+    def __init__(self,key,dt = 1 ,steps = 4096 , frequency = 190, spectralwidth = 30): #,stepsCont = 2**15-4096 ,delay = int(4096/2)
         self.dt = dt
         self.steps = steps
         self.stepsCont = 2**15-steps
         self.delay = int(steps/2)
         self.frequency = frequency
         self.spectralwidth = spectralwidth
+        self.key = key
         
     def generate(self,numberofSpectra,aFieldStrength,b,c,ODscaler,CoupledHamiltonian,randomizeFieldstrength = True,randomizePhase = True,randomizeHamiltonian = False, randomizeODscaler = False ):
         dim = CoupledHamiltonian.shape[0]
-        eigenvalues0=np.array([0*1j]+list(np.linspace(-0.1/self.dt,0.1/self.dt,dim-1)+0.3/self.dt-.005j))
+        eigenvalues0=np.array([0*1j]+list(np.linspace(-0.1/self.dt,0.1/self.dt,dim-1)+0.3/self.dt-.001j))
 
         eigenvalues,eigenvectors=la.eig(CoupledHamiltonian)
         InitialState=np.zeros(dim,dtype = complex)
@@ -40,15 +41,22 @@ class sim():
         self.data = []
         for indx,(aFieldStrength,b,c,ODscaler) in tqdm(enumerate(zip(aFieldStrengths,bs,cs,ODscalers)), total=numberofSpectra):
             spectrum,optdensity = self.calculate(InitialState,eigenvalues0,eigenvectors,eigenvalues,CoupledHamiltonian,dim,aFieldStrength,b,c,ODscaler)
-            self.data.append([self.dt,self.steps,self.stepsCont,self.delay,self.frequency,self.spectralwidth,aFieldStrength,b,c,ODscaler,dim,CoupledHamiltonian,spectrum,optdensity])
+            self.data.append([self.dt,self.steps,self.stepsCont,self.delay,self.frequency,self.spectralwidth,aFieldStrength,b,c,ODscaler,dim,CoupledHamiltonian.real,spectrum,optdensity])
             
             # Every 1000 Spectra save parameters and calculated Spectra, to save RAM empty temporary storage
-            if indx%1000 == 0 : 
-                temp = pd.DataFrame(self.data)
-                temp.columns = ["dt", "steps", "stepsCont","delay","frequency","spectralwidth","aFieldStrength","b","c","ODscaler","dim","CoupledHamiltonian","spectrum","optdensity"]
-                database = pd.read_csv("dataset.csv")
-                database = database.append(temp,ignore_index=True)
-                database.to_csv("dataset.csv",index=False) 
+            if (indx+1)%10000 == 0 : 
+                temp = pd.DataFrame(self.data,columns = ["dt", "steps", "stepsCont","delay","frequency","spectralwidth","aFieldStrength","b","c","ODscaler","dim","CoupledHamiltonian","spectrum","optdensity"]) 
+# =============================================================================
+#                 store = pd.HDFStore('dataset.h5')
+#                 store.put(self.key,temp)
+# =============================================================================
+# =============================================================================
+#                 if os.path.exists('dataset.h5'):
+#                     dataset = pd.read_hdf('dataset.h5', key=self.key+str((indx-1)/10000)) 
+#                     pd.concat([dataset,temp],ignore_index = True).to_hdf('dataset.h5', key=self.key, mode='a')  
+#                 else:
+# =============================================================================
+                temp.to_hdf('dataset.h5', key=self.key+str(int((indx+1)/10000)), mode='a')
                 self.data = []
         
     def calculate(self,InitialState,eigenvalues0,eigenvectors,eigenvalues,CoupledHamiltonian,dim,aFieldStrength,b,c,ODscaler):
@@ -97,6 +105,8 @@ class sim():
                 aFieldStrengths = np.random.random(numberofSpectra)
             else: 
                 aFieldStrengths = np.ones(numberofSpectra)*aFieldStrength
+        else: 
+            aFieldStrengths = aFieldStrength
 
         if (type(b) == int or type(b) == np.float64) and (type(c) == int or type(c) == np.float64):
 

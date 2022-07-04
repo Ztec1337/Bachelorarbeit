@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from Setup import parameters 
+#from Setup import parameters 
 from simgen import sim
 
 
@@ -31,11 +31,9 @@ def checkpatHamiltonian(dim,even = True):
     CoupledHamiltonian=(IntH+IntH.conj().T)
     np.fill_diagonal(CoupledHamiltonian, 0)   
     return CoupledHamiltonian
+
     
-checkpatHamiltonian(10)
-    
-    
-CoupledHamiltonian = simpleHamiltonian(10)
+CoupledHamiltonian = simpleHamiltonian(20)
 
 aFieldStrength = 0.5
 
@@ -43,15 +41,14 @@ b,c=(np.random.random(2)-0.5)*2*(0.01,0.0002)
 
 ODscaler = 5
 
-numberofSpectra = 6000
+numberofSpectra = 100000
 
-simulation = sim()
+simulation = sim(key = '20simpleHam')
 simulation.generate(numberofSpectra,aFieldStrength,b,c,ODscaler,CoupledHamiltonian)
 
-
-x = pd.DataFrame(simulation.data,columns = parameters)
-
-print(type(x["optdensity"][0]))
-
-plt.plot(x["optdensity"][np.random.randint(numberofSpectra)])
-plt.plot(x["spectrum"][np.random.randint(numberofSpectra)])
+# =============================================================================
+# CoupledHamiltonian = simpleHamiltonian(20)
+# 
+# simulation = sim(key = '20checkpatHam')
+# simulation.generate(numberofSpectra,aFieldStrength,b,c,ODscaler,CoupledHamiltonian,)
+# =============================================================================

@@ -83,7 +83,7 @@ history = model.fit(
     validation_split = 0.2,
     callbacks=[tensorboard_callback])
 #%%
-model.save('trained_models/mlp_mae_mape') 
+model.save('trained_models/mlp_mae_mape_test') 
 
 #%%
 hist = pd.DataFrame(history.history)
