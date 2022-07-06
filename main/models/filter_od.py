@@ -41,12 +41,12 @@ for i in range(5):
     plt.plot(dataset['optdensity'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
 plt.legend()
 #%%
-plt.figure(figsize=(10,6))
-i = 1
-plt.plot(dataset['optdensity'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
-plt.legend()
-plt.show()
-plt.figure(figsize=(10,6))
-plt.plot(dataset['spectrum'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
-plt.legend()
-plt.show()
+for i in range(10):
+    plt.figure(figsize=(10,6))
+    plt.plot(dataset['optdensity'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
+    plt.legend()
+    plt.show()
+    plt.figure(figsize=(10,6))
+    plt.plot(dataset['spectrum'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
+    plt.legend()
+    plt.show()
