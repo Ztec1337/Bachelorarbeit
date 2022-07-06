@@ -22,7 +22,6 @@ from tensorflow.keras import layers
 
 from tqdm import tqdm
 
-import datetime
 #%%
 # Load all generated data
 # =============================================================================
@@ -43,6 +42,11 @@ for i in range(5):
 plt.legend()
 #%%
 plt.figure(figsize=(10,6))
-i = 2
+i = 1
 plt.plot(dataset['optdensity'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
 plt.legend()
+plt.show()
+plt.figure(figsize=(10,6))
+plt.plot(dataset['spectrum'][i][1000:2130],label = f'FieldStrength: {dataset["aFieldStrength"][i]:.2f},b {dataset["b"][i]:.5f} , c {dataset["c"][i]:.5f}  ')
+plt.legend()
+plt.show()
