@@ -24,6 +24,7 @@ from tensorflow.keras import layers
 ##
 filename = 'dataset.h5'
 keyname = '20simpleHam1'
+keyname = '20simpleHam_noise'
 filepath = path.abspath(path.join(path.dirname(__file__), "..", "..", f"main/data/{filename}"))
 # Load a single chunk => much faster
 dataset = pd.read_hdf(filepath,keyname)
@@ -31,7 +32,7 @@ dataset = pd.read_hdf(filepath,keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-X,y= np.array(dataset["spectrum"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
+X,y= np.array(dataset["noise_spectrum_01"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
 
 # only scale parameters not spectra
 sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1].reshape(-1,1)),StandardScaler().fit(y[2].reshape(-1,1))
@@ -76,7 +77,7 @@ history = model.fit(
     validation_split = 0.2,
     callbacks=[tensorboard_callback])
 ##
-model.save('trained_models/mlp_mae_mape_test') 
+model.save('trained_models/simple_mlp_sn1')
 
 ##
 hist = pd.DataFrame(history.history)
