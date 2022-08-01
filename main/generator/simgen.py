@@ -5,13 +5,6 @@ Created on Mon May 16 11:57:49 2022
 @author: danie
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed May  4 17:29:35 2022
-
-@author: danie
-"""
-
 import os
 import numpy as np
 import pandas as pd

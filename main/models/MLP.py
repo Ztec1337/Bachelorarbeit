@@ -27,28 +27,39 @@ keyname = '20simpleHam1'
 keyname = '20simpleHam_noise'
 filepath = path.abspath(path.join(path.dirname(__file__), "..", "..", f"main/data/{filename}"))
 # Load a single chunk => much faster
-dataset = pd.read_hdf(filepath,keyname)
+dataset = pd.read_hdf(filepath, keyname)
 ##
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-X,y= np.array(dataset["noise_spectrum_03"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
+
+X, y = np.array(dataset["noise_spectrum_05"].tolist()), np.array(
+    [dataset["aFieldStrength"].tolist(), dataset["b"].tolist(), dataset["c"].tolist()])
 
 # only scale parameters not spectra
-sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1].reshape(-1,1)),StandardScaler().fit(y[2].reshape(-1,1))
+sc0, sc1, sc2 = StandardScaler().fit(y[0].reshape(-1, 1)), StandardScaler().fit(
+    y[1].reshape(-1, 1)), StandardScaler().fit(y[2].reshape(-1, 1))
 # concatenate scaled parameters and split into training and test set
-y = np.array([sc0.transform(y[0].reshape(-1,1)),sc1.transform(y[1].reshape(-1,1)),sc2.transform(y[2].reshape(-1,1))]).T.reshape(-1,3)
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=42)
+y = np.array([sc0.transform(y[0].reshape(-1, 1)), sc1.transform(y[1].reshape(-1, 1)),
+              sc2.transform(y[2].reshape(-1, 1))]).T.reshape(-1, 3)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
 ##
 def create_dense_model(regressionparameters):
     input_shape = (3276)
     model = keras.Sequential()
     model.add(layers.InputLayer(input_shape=input_shape))
     model.add(layers.Flatten())
-    model.add(layers.Dense(100,activation='relu'))
-    model.add(layers.Dense(100,activation='relu'))
-    model.add(layers.Dense(regressionparameters, activation='linear'))
+    model.add(layers.Dense(100, activation='relu',
+                           activity_regularizer=keras.regularizers.L2(1e-4)))
+    model.add(layers.Dense(100, activation='relu',
+                           activity_regularizer=keras.regularizers.L2(1e-4)))
+    model.add(layers.Dense(regressionparameters, activation='linear',
+                           activity_regularizer=keras.regularizers.L2(1e-2)))
     return model
+
+
 ##
 model = create_dense_model(3)
 ##
@@ -60,11 +71,11 @@ lossfunc = 'mean_squared_error'
 model.compile(
     optimizer=opt,
     loss=lossfunc,
-    metrics=['mae','mape']
-    )
+    metrics=['mae', 'mape']
+)
 ##
 logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
-log_dir = logpath +'\\mlp'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+log_dir = logpath + '\\mlp_reg_s1' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 ##
 history = model.fit(
@@ -74,18 +85,17 @@ history = model.fit(
     batch_size=200,
     verbose=1,
     # Calculate validation results on 20% of the training data.
-    validation_split = 0.2,
+    validation_split=0.2,
     callbacks=[tensorboard_callback])
 ##
-model.save('trained_models/simple_mlp_sn3')
-
+model.save('trained_models/simple_mlp_reg_sn5')
+print('model saved!')
 ##
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 hist.tail()
 ##
-absoluteerror = model.predict(X_test)-y_test
-plt.hist(absoluteerror.T[0],bins=100,alpha = 0.5)
-plt.hist(absoluteerror.T[1],bins=100,alpha = 0.5)
-plt.hist(absoluteerror.T[2],bins=100,alpha = 0.5)
-    
+absoluteerror = model.predict(X_test) - y_test
+plt.hist(absoluteerror.T[0], bins=100, alpha=0.5)
+plt.hist(absoluteerror.T[1], bins=100, alpha=0.5)
+plt.hist(absoluteerror.T[2], bins=100, alpha=0.5)
