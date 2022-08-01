@@ -39,7 +39,7 @@ dataset = pd.read_hdf(filepath,keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-X,y= np.array(dataset["noise_spectrum_01"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
+X,y= np.array(dataset["noise_spectrum_05"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
 
 # only scale parameters not spectra
 sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1].reshape(-1,1)),StandardScaler().fit(y[2].reshape(-1,1))
@@ -76,7 +76,7 @@ model.compile(
     )
 ##
 logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
-log_dir = logpath +'\\cnn_noise_01'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+log_dir = logpath +'\\cnn_noise_05'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 ##
 history = model.fit(
@@ -89,7 +89,7 @@ history = model.fit(
     validation_split = 0.2,
     callbacks=[tensorboard_callback])
 ##
-model.save('trained_models/cnn_mae_mape_noise_01')
+model.save('trained_models/cnn_mae_mape_noise_05')
 ##
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
