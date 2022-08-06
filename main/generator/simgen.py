@@ -10,6 +10,9 @@ import numpy as np
 import pandas as pd
 import scipy.linalg as la
 from tqdm import tqdm
+import warnings
+from tables import NaturalNameWarning
+#warnings.filterwarnings('ignore', category=NaturalNameWarning)
 
 
 class sim():
@@ -49,13 +52,14 @@ class sim():
                 [self.dt, self.steps, self.stepsCont, self.delay, self.frequency, self.spectralwidth, aFieldStrength, b,
                  c, ODscaler, dim, CoupledHamiltonian.real, spectrum, optdensity])
 
-            # Every 1000 Spectra save parameters and calculated Spectra, to save RAM empty temporary storage
-            if (indx + 1) % 10000 == 0:
+            # Every 10000 Spectra save parameters and calculated Spectra, to save RAM empty temporary storage
+            if (indx + 1) % 100 == 0:
                 temp = pd.DataFrame(self.data,
                                     columns=["dt", "steps", "stepsCont", "delay", "frequency", "spectralwidth",
                                              "aFieldStrength", "b", "c", "ODscaler", "dim", "CoupledHamiltonian",
                                              "spectrum", "optdensity"])
-                temp.to_hdf('dataset.h5', key=self.key + str(int((indx + 1) / 10000)), mode='a')
+                print(self.key + str(int((indx + 1) / 100)))
+                temp.to_hdf('dataset_show.h5', key=self.key + str(int((indx + 1) / 100)), mode='a')
                 self.data = []
 
     def calculate(self, InitialState, eigenvalues0, eigenvectors, eigenvalues, CoupledHamiltonian, dim, aFieldStrength,
@@ -91,7 +95,7 @@ class sim():
 
         # Calculate time-dependent dipole moment, and from it the Spectrum
         Dipole = ODscaler * np.array([state.T.conj() @ CoupledHamiltonian @ state for state in StateHistory])
-        Spectrum = abs(0.0001j / aFieldStrength * np.fft.fft(Dipole) + Pulsespec)
+        Spectrum = abs(0.0001j / aFieldStrength * np.fft.fft(Dipole) + Pulsespec)**2 # here Thomas said yesterday to add a ^2
 
         # Calculate optical density 
         thresh = abs(Pulsespec).max() * 1e-8
@@ -120,11 +124,16 @@ class sim():
             else:
                 bs = np.ones(numberofSpectra) * b
                 cs = np.ones(numberofSpectra) * c
+        else:
+            bs = b
+            cs = c
         if type(ODscaler) == int or type(ODscaler) == float:
             if randomizeODscaler == True:
                 ODscalers = np.random.randint(10, size=numberofSpectra)
             else:
                 ODscalers = np.ones(numberofSpectra) * ODscaler
+        else:
+            ODscalers = ODscaler
         return aFieldStrengths, bs, cs, ODscalers
 # Interacting/coupling part of Hamiltonian one sided only! 
 # IntH=np.random.random((dim,dim))*0.0001+np.random.random((dim,dim))*0j+1
@@ -159,3 +168,6 @@ class sim():
 # database.to_csv("dataset.csv",index=False) 
 # 
 # =============================================================================
+
+##
+

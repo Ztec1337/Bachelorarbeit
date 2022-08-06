@@ -36,6 +36,7 @@ ODscaler=5
 eigenvalues0=np.array([0*1j]+list(np.linspace(-0.1/dt,0.1/dt,dim-1)+0.3/dt-.001j))
 InitialHamiltonian=np.multiply(np.identity(dim), eigenvalues0[:, np.newaxis])
 
+##
 # Interacting/coupling part of Hamiltonian
 # IntH=np.random.random((dim,dim))*0.0001+np.random.random((dim,dim))*0j+1
 IntH=np.zeros((dim,dim))*1j
