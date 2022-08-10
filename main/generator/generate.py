@@ -33,17 +33,17 @@ def checkpatHamiltonian(dim, even=True):
     return CoupledHamiltonian
 
 
-CoupledHamiltonian = simpleHamiltonian(20)
+CoupledHamiltonian = simpleHamiltonian(10)
 
-aFieldStrength = np.linspace(0.01,1,100)
-
+#aFieldStrength = np.linspace(0.01,1,100)
+aFieldStrength = np.ones(100)*0.01
 b, c = (np.random.random(2) - 0.5) * 2 * (0.01, 0.0002)
-b, c = np.zeros(100),np.zeros(100)
+b, c = np.zeros(100),np.linspace(-0.0002,0.0002,100)
 ODscaler = 5*np.ones(100)
 
 numberofSpectra = 100
 
-simulation = sim(key='20simpleHam_crafted')
+simulation = sim(key='10simpleHam_crafted_cvar')
 simulation.generate(numberofSpectra, aFieldStrength, b, c, ODscaler, CoupledHamiltonian,randomizeFieldstrength=False,randomizePhase=False)
 
 # =============================================================================

@@ -105,7 +105,7 @@ for SpecCounter in range(SpectraNumber):
         
     # Calculate time-dependent dipole moment, and from it the Spectrum
     Dipole=ODscaler*np.array([state.T.conj() @ CoupledHamiltonian @ state for state in StateHistory])
-    Spectrum=abs(0.0001j/aFieldStrength*np.fft.fft(Dipole)+Pulsespec)
+    Spectrum=abs(0.0001j/aFieldStrength*np.fft.fft(Dipole)+Pulsespec)**2
 
         
     # Calculate computing time

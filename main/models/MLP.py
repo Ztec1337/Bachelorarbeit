@@ -23,7 +23,6 @@ from tensorflow.keras import layers
 # =============================================================================
 ##
 filename = 'dataset.h5'
-keyname = '20simpleHam1'
 keyname = '20simpleHam_noise'
 filepath = path.abspath(path.join(path.dirname(__file__), "..", "..", f"main/data/{filename}"))
 # Load a single chunk => much faster
@@ -32,30 +31,29 @@ dataset = pd.read_hdf(filepath, keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+for k in ["spectrum","noise_spectrum_01","noise_spectrum_03","noise_spectrum_05"]:
+    X, y = np.array(dataset[k].tolist()), np.array(
+        [dataset["aFieldStrength"].tolist(), dataset["b"].tolist(), dataset["c"].tolist()])
 
-X, y = np.array(dataset["noise_spectrum_01"].tolist()), np.array(
-    [dataset["aFieldStrength"].tolist(), dataset["b"].tolist(), dataset["c"].tolist()])
-
-# only scale parameters not spectra
-sc0, sc1, sc2 = StandardScaler().fit(y[0].reshape(-1, 1)), StandardScaler().fit(
-    y[1].reshape(-1, 1)), StandardScaler().fit(y[2].reshape(-1, 1))
-# concatenate scaled parameters and split into training and test set
-y = np.array([sc0.transform(y[0].reshape(-1, 1)), sc1.transform(y[1].reshape(-1, 1)),
-              sc2.transform(y[2].reshape(-1, 1))]).T.reshape(-1, 3)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+    # only scale parameters not spectra
+    sc0, sc1, sc2 = StandardScaler().fit(y[0].reshape(-1, 1)), StandardScaler().fit(
+        y[1].reshape(-1, 1)), StandardScaler().fit(y[2].reshape(-1, 1))
+    # concatenate scaled parameters and split into training and test set
+    y = np.array([sc0.transform(y[0].reshape(-1, 1)), sc1.transform(y[1].reshape(-1, 1)),
+                  sc2.transform(y[2].reshape(-1, 1))]).T.reshape(-1, 3)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    ##
+    from tensorflow.keras.callbacks import ModelCheckpoint
 
 ##
-for k in [0.10,0.20,0.30,0.40,0.50]:
+
     def create_dense_model(regressionparameters):
         input_shape = (3276)
         model = keras.Sequential()
         model.add(layers.InputLayer(input_shape=input_shape))
         model.add(layers.Flatten())
-        model.add(layers.Dense(100, activation='relu'))
-        model.add(layers.Dropout(k))
-        model.add(layers.Dense(100, activation='relu'))
-        model.add(layers.Dropout(k))
+        model.add(layers.Dense(10, activation='relu'))
+        model.add(layers.Dense(10, activation='relu'))
         model.add(layers.Dense(regressionparameters, activation='linear'))
         return model
 
@@ -75,8 +73,12 @@ for k in [0.10,0.20,0.30,0.40,0.50]:
     )
     ##
     logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
-    log_dir = logpath + f'\\mlp_s1_dropout_{int(k*100)}' #+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = logpath + f'\\mlp_10_10{k}' #+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+    checkpoint_path = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\models\\trained_models\\fit\\"))
+    checkpoint_dir = checkpoint_path + f'\\mlp_10_10{k}'  # + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    checkpoint_callback = ModelCheckpoint(checkpoint_dir, monitor='val_loss', save_best_only=True, mode='min')
     ##
     history = model.fit(
         X_train,
@@ -86,7 +88,7 @@ for k in [0.10,0.20,0.30,0.40,0.50]:
         verbose=1,
         # Calculate validation results on 20% of the training data.
         validation_split=0.2,
-        callbacks=[tensorboard_callback])
+        callbacks=[tensorboard_callback,checkpoint_callback])
 ##
 #model.save('trained_models/simple_mlp_reg_sn1')
 #print('model saved!')

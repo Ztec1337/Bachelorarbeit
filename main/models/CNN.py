@@ -18,7 +18,7 @@ import sklearn as sk
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-
+from tensorflow.keras.callbacks import ModelCheckpoint
 from tqdm import tqdm
 import datetime
 
@@ -39,62 +39,75 @@ dataset = pd.read_hdf(filepath,keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-X,y= np.array(dataset["noise_spectrum_05"].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
+for k in ["spectrum","noise_spectrum_01","noise_spectrum_03","noise_spectrum_05"]:
+    X,y= np.array(dataset[k].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
 
-# only scale parameters not spectra
-sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1].reshape(-1,1)),StandardScaler().fit(y[2].reshape(-1,1))
-# concatenate scaled parameters and split into training and test set
-y = np.array([sc0.transform(y[0].reshape(-1,1)),sc1.transform(y[1].reshape(-1,1)),sc2.transform(y[2].reshape(-1,1))]).T.reshape(-1,3)
-X_train, X_test, y_train, y_test = train_test_split(X[:,:,None],y, test_size=0.2, random_state=42)
+    # only scale parameters not spectra
+    sc0,sc1,sc2 = StandardScaler().fit(y[0].reshape(-1,1)),StandardScaler().fit(y[1].reshape(-1,1)),StandardScaler().fit(y[2].reshape(-1,1))
+    # concatenate scaled parameters and split into training and test set
+    y = np.array([sc0.transform(y[0].reshape(-1,1)),sc1.transform(y[1].reshape(-1,1)),sc2.transform(y[2].reshape(-1,1))]).T.reshape(-1,3)
+    X_train, X_test, y_train, y_test = train_test_split(X[:,:,None],y, test_size=0.2, random_state=42)
 
-##
-def create_conv_model(regressionparameters):
-    input_shape = (3276,1)
-    model = keras.Sequential()
-    model.add(layers.InputLayer(input_shape=input_shape))
-    model.add(layers.Conv1D(8,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(16,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(32,strides = 3,kernel_size=(3),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(64,strides = 4,kernel_size=(4),padding='valid',activation='relu'))
-    model.add(layers.Conv1D(128,strides =5,kernel_size=(5),padding='valid',activation='relu'))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(100, activation='relu'))
-    model.add(layers.Dense(regressionparameters, activation='linear'))
-    return model
-##
-model = create_conv_model(3)
-##
-model.summary()
-##
-opt = tf.keras.optimizers.Adam(lr=0.00005)
-lossfunc = 'mean_squared_error'
-##
-model.compile(
-    optimizer=opt,
-    loss=lossfunc,
-    metrics=['mae','mape']
-    )
-##
-logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
-log_dir = logpath +'\\cnn_noise_05'+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-##
-history = model.fit(
-    X_train,
-    y_train,
-    epochs=2000,
-    batch_size=200,
-    verbose=1,
-    # Calculate validation results on 20% of the training data.
-    validation_split = 0.2,
-    callbacks=[tensorboard_callback])
-##
-model.save('trained_models/cnn_mae_mape_noise_05')
-##
-hist = pd.DataFrame(history.history)
-hist['epoch'] = history.epoch
-hist.tail()
-##
+    ##
+    def create_conv_model(regressionparameters):
+        input_shape = (3276, 1)
+        model = keras.Sequential()
+        model.add(layers.InputLayer(input_shape=input_shape))
+        model.add(layers.Conv1D(4, strides=2, kernel_size=(4), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(8, strides=2, kernel_size=(4), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(8, strides=1, kernel_size=(5), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(16, strides=4, kernel_size=(4), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(16, strides=1, kernel_size=(5), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(64, strides=4, kernel_size=(4), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(64, strides=1, kernel_size=(5), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(128, strides=4, kernel_size=(4), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(128, strides=1, kernel_size=(3), padding='valid', activation='relu'))
+        model.add(layers.Conv1D(128, strides=1, kernel_size=(3), padding='valid', activation='relu'))
+        model.add(layers.Flatten())
+        model.add(layers.Dense(100, activation='relu'))
+        model.add(layers.Dense(regressionparameters, activation='linear'))
+        return model
+    ##
+    model = create_conv_model(3)
+    ##
+    model.summary()
+    ##
+    opt = tf.keras.optimizers.Adam(lr=0.00005)
+    lossfunc = 'mean_squared_error'
+    ##
+    model.compile(
+        optimizer=opt,
+        loss=lossfunc,
+        metrics=['mae','mape']
+        )
+    print('Model compiled')
+    ##
+    logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
+    log_dir = logpath +f'\\cnn2_{k}'#+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+    checkpoint_path = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\models\\trained_models\\fit\\"))
+    checkpoint_dir = checkpoint_path + f'\\cnn2_{k}'  # + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    checkpoint_callback = ModelCheckpoint(checkpoint_dir, monitor='val_loss', save_best_only=True, mode='min')
+    ##
+
+    ##
+    history = model.fit(
+        X_train,
+        y_train,
+        epochs=5000,
+        batch_size=200,
+        verbose=1,
+        # Calculate validation results on 20% of the training data.
+        validation_split = 0.2,
+        callbacks=[tensorboard_callback,checkpoint_callback])
+    ##
+    #model.save('trained_models/cnn_mae_mape_noise_05')
+    ##
+    #hist = pd.DataFrame(history.history)
+    #hist['epoch'] = history.epoch
+    #hist.tail()
+    ##
 
 
 

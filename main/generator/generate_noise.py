@@ -15,11 +15,15 @@ import seaborn as sns
 sns.set()
 
 ##
-filename = 'dataset.h5'
-keyname = '20simpleHam1'
-filepath = path.abspath(path.join(path.dirname('generate_noise.py'), "..", f"main/data/{filename}"))
+filename = 'dataset2.h5'
+keyname = '20simpleHam_noise'
+filepath = path.abspath(path.join(path.dirname('generate_noise.py'), "..", f"data/{filename}"))
+import h5py
+f = h5py.File(filepath, 'r')
+print([key for key in f.keys()])
 # Load a single chunk => much faster
 dataset = pd.read_hdf(filepath, keyname)
+
 ##
 max_val = np.array([x.max() for x in dataset["spectrum"]]).max()
 print(max_val)
@@ -38,7 +42,7 @@ dataset['noise_spectrum_03'] = pd.Series(mod_spectra_03.tolist())
 dataset['noise_spectrum_05'] = pd.Series(mod_spectra_05.tolist())
 
 ##
-dataset.to_hdf(filepath, key='20simpleHam_noise', mode='a')
+dataset.to_hdf('dataset.h5', key='20simpleHam_noise', mode='w')
 ##
 for i in range(5):
     plt.figure(figsize=(10, 6))
