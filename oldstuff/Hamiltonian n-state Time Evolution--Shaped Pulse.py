@@ -11,21 +11,21 @@ import time
 dt=1 # time step size
 steps=4096 # number of time steps
 stepsCont=2**15-steps # for adding more steps and evolve quickly after pulse is over
-SpectraNumber=1000 # number of spectra to calculate
+SpectraNumber=1 # number of spectra to calculate
 
 # some conversions, currently not used
 times=np.linspace(0,(steps+stepsCont)*dt*0.02419,steps+stepsCont,endpoint=False)
 de=1/((steps+stepsCont)*dt)*171.2
 eV=np.linspace(0,(steps+stepsCont)*de,steps+stepsCont,endpoint=False)
-
+print(times)
 # Light field/pulse parameters
 frequency=190
 spectralwidth=30
 delay=int(steps/2) # time delay of pulse
-b=0 # quadratic phase
+b=0.01 # quadratic phase
 c=0 # cubic phase
-aRandomizePhase=1
-aFieldStrength=1
+aRandomizePhase=0
+aFieldStrength=0.01
 
 # Info about the medium: optical density (make sure the absorption lines, at low intensity, are never deeper than 90-95% of the total spectral intensity)
 dim=20 # number of states in Hamiltonian
@@ -118,10 +118,10 @@ for SpecCounter in range(SpectraNumber):
     ax[0].imshow(abs(StateHistory.T),aspect='auto', interpolation='none')
     ax[0].set_title("State Evolution")
 
-    #ax[1].plot(times[0:len(Pulse)],np.real(Pulse[0:len(Pulse)-1]))
-    ax[2].plot(np.real(Pulse[0:len(Pulse)-1]))
+    ax[2].plot(times[1850:2250],np.real(Pulse[1850:2250]))
+    #ax[2].plot(np.real(Pulse[1850:2250]))
     ax[2].set_title("Temporal Pulse Shape")
-    ax[2].text(0,1.5,'%d' %(SpecCounter))
+    #ax[2].text(0,1.5,'%d' %(SpecCounter))
     ax[2].margins(x=0)
     ax[1].imshow(abs(InitialHamiltonian))
     ax[1].set_title("Free Hamiltonian")
@@ -129,7 +129,7 @@ for SpecCounter in range(SpectraNumber):
     ax[3].set_title("Interacting Hamiltonian")
     ax[4].plot(Dipole.real)
     ax[4].set_title("Temporal Dipole")
-    ax[5].plot(Spectrum[0:int((stepsCont+steps)/10)])
+    ax[5].plot(times[0:int((stepsCont+steps)/10)],Spectrum[0:int((stepsCont+steps)/10)])
     ax[5].set_title("Absorption Spectrum")
 
     fig.canvas.flush_events()
@@ -140,4 +140,7 @@ for SpecCounter in range(SpectraNumber):
     print (SpecCounter, timenow-start, timenow-start0)
 
     
+
+
+##
 
