@@ -39,7 +39,7 @@ dataset = pd.read_hdf(filepath,keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-for k in ["spectrum","noise_spectrum_01","noise_spectrum_03","noise_spectrum_05"]:
+for k in ["noise_spectrum_01"]: # ,"noise_spectrum_03","noise_spectrum_05","spectrum"
     X,y= np.array(dataset[k].tolist()),np.array([dataset["aFieldStrength"].tolist(),dataset["b"].tolist(),dataset["c"].tolist()])
 
     # only scale parameters not spectra

@@ -28,14 +28,14 @@ aRandomizePhase=0
 aFieldStrength=0.01
 
 # Info about the medium: optical density (make sure the absorption lines, at low intensity, are never deeper than 90-95% of the total spectral intensity)
-dim=20 # number of states in Hamiltonian
+dim=20  # number of states in Hamiltonian
 ODscaler=5
 
 #*******Define Hamiltonian
 # Non-interacting/non-coupling part of Hamiltonian
 eigenvalues0=np.array([0*1j]+list(np.linspace(-0.1/dt,0.1/dt,dim-1)+0.3/dt-.001j))
 InitialHamiltonian=np.multiply(np.identity(dim), eigenvalues0[:, np.newaxis])
-
+print(InitialHamiltonian.shape)
 ##
 # Interacting/coupling part of Hamiltonian
 # IntH=np.random.random((dim,dim))*0.0001+np.random.random((dim,dim))*0j+1
@@ -129,7 +129,7 @@ for SpecCounter in range(SpectraNumber):
     ax[3].set_title("Interacting Hamiltonian")
     ax[4].plot(Dipole.real)
     ax[4].set_title("Temporal Dipole")
-    ax[5].plot(times[0:int((stepsCont+steps)/10)],Spectrum[0:int((stepsCont+steps)/10)])
+    ax[5].plot(eV[0:int((stepsCont+steps)/10)],Spectrum[0:int((stepsCont+steps)/10)])
     ax[5].set_title("Absorption Spectrum")
 
     fig.canvas.flush_events()
