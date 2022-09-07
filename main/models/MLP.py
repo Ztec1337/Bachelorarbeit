@@ -31,8 +31,10 @@ dataset = pd.read_hdf(filepath, keyname)
 # Scale parameters to have a mean of 0 and std of 1; and split in train/test sets
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-for k in ["spectrum"]:#,"noise_spectrum_01","noise_spectrum_03","noise_spectrum_05"
-    X, y = np.array(dataset[k].tolist()), np.array(
+mag = [10**-float(i) for i in np.arange(1,6,1)]
+print(mag)
+for k in mag:# "spectrum","noise_spectrum_01","noise_spectrum_03","noise_spectrum_05"
+    X, y = np.array(dataset["noise_spectrum_01"].tolist()), np.array(
         [dataset["aFieldStrength"].tolist(), dataset["b"].tolist(), dataset["c"].tolist()])
 
     # only scale parameters not spectra
@@ -52,8 +54,8 @@ for k in ["spectrum"]:#,"noise_spectrum_01","noise_spectrum_03","noise_spectrum_
         model = keras.Sequential()
         model.add(layers.InputLayer(input_shape=input_shape))
         model.add(layers.Flatten())
-        model.add(layers.Dense(100, activation='relu'))
-        model.add(layers.Dense(100, activation='relu'))
+        model.add(layers.Dense(100, activation='relu',kernel_regularizer=tf.keras.regularizers.L1L2(l1=k, l2=k)))
+        model.add(layers.Dense(100, activation='relu',kernel_regularizer=tf.keras.regularizers.L1L2(l1=k, l2=k)))
         model.add(layers.Dense(regressionparameters, activation='linear'))
         return model
 
@@ -73,17 +75,17 @@ for k in ["spectrum"]:#,"noise_spectrum_01","noise_spectrum_03","noise_spectrum_
     )
     ##
     logpath = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\monitoring\\logs\\fit\\"))
-    log_dir = logpath + f'\\mlp_{k}' #+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = logpath + f'\\mlp_noise01_kernelreg_L1L2{k}' #+ datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     checkpoint_path = path.abspath(path.join(path.dirname(__file__), "..", "..", "main\\models\\trained_models\\fit\\"))
-    checkpoint_dir = checkpoint_path + f'\\mlp_{k}'  # + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    checkpoint_dir = checkpoint_path + f'\\mlp_noise01_kernelreg_L1L2{k}'  # + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     checkpoint_callback = ModelCheckpoint(checkpoint_dir, monitor='val_loss', save_best_only=True, mode='min')
     ##
     history = model.fit(
         X_train,
         y_train,
-        epochs=2000,
+        epochs=1000,
         batch_size=200,
         verbose=1,
         # Calculate validation results on 20% of the training data.
